@@ -64,13 +64,14 @@ namespace HanojskiStolpi
                                             najvecjiObroc--;
                                             mozniPremiki = new HashSet<int>() { PozicijeVStevilo(seznamZacasno) };
                                             stanje.Break();
-                                            return;
+                                            goto EndOfLoop;
                                         }
                                     }
                                 }
                             }
                         }
                     }
+                EndOfLoop:;
                 });
                 //premik seznamov za en nivo
                 stariPremiki = new HashSet<int> (trenutnePozicije);
