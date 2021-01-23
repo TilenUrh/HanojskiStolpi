@@ -49,7 +49,7 @@ namespace HanojskiStolpi
                 byte obrockiBy = Convert.ToByte(obrocki);
 
                 //izbira zacetka
-                Console.WriteLine("Izberi začetno pozicioj:");
+                Console.WriteLine("Izberi začetno pozicijo:");
                 string zacetek = Console.ReadLine();
                 byte zacetekBy = Convert.ToByte(zacetek);
 

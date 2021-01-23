@@ -15,12 +15,10 @@ namespace HanojskiStolpi
         {
             //deklaracija spremenljivk
             int stolpi = 4;
-            List<int> stariPremiki = new List<int>() { };
+            HashSet<int> stariPremiki = new HashSet<int>() { };
             List<int> trenutnePozicije = new List<int>(){PozicijeVStevilo(Lokacije)};
-            //byte[] zgornjiObrockiDefault = new byte[stolpi];
-            //for(int i = 0; i < zgornjiObrockiDefault.Length; i++) { zgornjiObrockiDefault[i] = 100; }
             List<byte> seznam;
-            List<int> mozniPremiki = new List<int>();
+            HashSet<int> mozniPremiki = new HashSet<int>();
             int najvecjiObroc = Lokacije.Count - 1;
             List<byte> seznamZacasno = new List<byte>();
 
@@ -29,42 +27,34 @@ namespace HanojskiStolpi
 
             while (najvecjiObroc >= 0)
             {
-                Parallel.ForEach(trenutnePozicije, (pozicija, stanje) =>
+                ParallelOptions options = new ParallelOptions();
+                options.MaxDegreeOfParallelism = 1;
+                Parallel.ForEach(trenutnePozicije, options,  (pozicija, stanje) =>
                 {
                     seznam = new List<byte>();
                     byte[] zgornjiObrocki = new byte[stolpi];
-                    for (int i = 0; i < zgornjiObrocki.Length; i++) { zgornjiObrocki[i] = 100; }
                     seznam = SteviloVPozicije(pozicija, Lokacije.Count); //seznam pozicij obrockov
-                    
 
-                    //poišči najmanjše obroče v stolpcu
-                    for (int i = 0; i < seznam.Count; i++)
-                    {
-                        if (i < zgornjiObrocki[Convert.ToInt32(seznam[i])])
-                        {
-                            zgornjiObrocki[Convert.ToInt32(seznam[i])] = Convert.ToByte(i);
-                        }
-                    }
+                    zgornjiObrocki = ZgornjiObrocki(seznam, stolpi);
+
 
                     //preveri vse stolpce
-                    for (int i = 0; i < zgornjiObrocki.Length; i++)
+                    for (int i = 0; i < stolpi; i++)
                     {
                         //preveri vse povezave
                         foreach ( var povezava in Povezave)
-                        {
-                            
-
+                        {                            
                             //preveri če je obroč na povezavi na prvem mestu
                             if (povezava.Item1 == (Convert.ToByte(i)))
                             {
                                 //ne premakni večjega na manjšega
-                                if (zgornjiObrocki[Convert.ToInt32(povezava.Item1)] < zgornjiObrocki[Convert.ToInt32(povezava.Item2)] && zgornjiObrocki[Convert.ToInt32(povezava.Item1)] != 100)
+                                if (zgornjiObrocki[povezava.Item1] < zgornjiObrocki[povezava.Item2])
                                 {
-                                    seznamZacasno = seznam;
-                                    seznamZacasno[Convert.ToInt32(zgornjiObrocki[i])] = povezava.Item2;
+                                    seznamZacasno = new List<byte>(seznam);
+                                    seznamZacasno[zgornjiObrocki[i]] = povezava.Item2;
 
-                                    //preveri če je bil premik že narejen prej
-                                    if (!stariPremiki.Contains(PozicijeVStevilo(seznamZacasno)))
+                                    //preveri če je bil premik že narejen prej in če je obroč že na končni poziciji
+                                    if (!stariPremiki.Contains(PozicijeVStevilo(seznamZacasno)) && !(i == konec && zgornjiObrocki[i] >= najvecjiObroc))
                                     {
                                         mozniPremiki.Add(PozicijeVStevilo(seznamZacasno));
 
@@ -72,48 +62,20 @@ namespace HanojskiStolpi
                                         if (seznamZacasno.ElementAt(najvecjiObroc) == konec)
                                         {
                                             najvecjiObroc--;
-                                            ponovitev++;
-                                            stariPremiki = new List<int>() { };
-                                            trenutnePozicije = new List<int>() { PozicijeVStevilo(seznamZacasno) };
+                                            mozniPremiki = new HashSet<int>() { PozicijeVStevilo(seznamZacasno) };
                                             stanje.Break();
-                                        }
-                                    }
-                                }
-                            }
-
-                            //preveri če je obroč na povezavi na drugem mestu
-                            if ( povezava.Item2 == (Convert.ToByte(i)))
-                            {
-                                //ne premakni večjega na manjšega
-                                if (zgornjiObrocki[Convert.ToInt32(povezava.Item2)] < zgornjiObrocki[Convert.ToInt32(povezava.Item1)] && zgornjiObrocki[Convert.ToInt32(povezava.Item2)] != 100)
-                                {
-                                    seznamZacasno = seznam;
-                                    seznamZacasno[Convert.ToInt32(zgornjiObrocki[i])] = povezava.Item1;
-
-                                    //preveri če je bil premik že narejen prej
-                                    if (!stariPremiki.Contains(PozicijeVStevilo(seznamZacasno)))
-                                    {
-                                        mozniPremiki.Add(PozicijeVStevilo(seznamZacasno));
-
-                                        //preveri če je obroč prispel na končno pozicijo
-                                        if (seznamZacasno.ElementAt(najvecjiObroc) == konec)
-                                        {
-                                            najvecjiObroc--;
-                                            ponovitev++;
-                                            stariPremiki = new List<int>() { };
-                                            trenutnePozicije = new List<int>() { PozicijeVStevilo(seznamZacasno) };
-                                            stanje.Break();
+                                            return;
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                    
                 });
                 //premik seznamov za en nivo
-                stariPremiki = trenutnePozicije;
-                trenutnePozicije = mozniPremiki;
+                stariPremiki = new HashSet<int> (trenutnePozicije);
+                trenutnePozicije = new List<int>(mozniPremiki);
+                mozniPremiki.Clear();
 
                 //stetje korakov
                 ponovitev++;
@@ -129,6 +91,8 @@ namespace HanojskiStolpi
             //Izpis rešitve in max porabe pomnilnika
             Console.WriteLine($"Število ponovitev: {ponovitev}");
             Console.WriteLine($"Max RAM: {RAM / 1000000} MB");
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
 
@@ -143,32 +107,32 @@ namespace HanojskiStolpi
             {
                 //K4
                 case "1":
-                    hanojskiStolp.Povezave = new List<(byte, byte)>() { (0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3) };
+                    hanojskiStolp.Povezave = new List<(byte, byte)>() { (0, 1), (1, 0), (0, 2), (2, 0), (0, 3), (3, 0), (1, 2), (2, 1), (1, 3), (3, 1), (2, 3), (3, 2) };
                     break;
 
                 //K1,3-e
                 case "2":
-                    hanojskiStolp.Povezave = new List<(byte, byte)>() { (0, 1), (0, 2), (0, 3), (2, 3) };
+                    hanojskiStolp.Povezave = new List<(byte, byte)>() { (0, 1), (1, 0), (0, 2), (2, 0), (0, 3), (3, 0), (2, 3), (3, 2) };
                     break;
 
                 //K1,3
                 case "3":
-                    hanojskiStolp.Povezave = new List<(byte, byte)>() { (0, 1), (0, 2), (0, 3) };
+                    hanojskiStolp.Povezave = new List<(byte, byte)>() { (0, 1), (1, 0), (0, 2), (2, 0), (0, 3), (3, 0) };
                     break;
 
                 //C4
                 case "4":
-                    hanojskiStolp.Povezave = new List<(byte, byte)>() { (0, 2), (0, 3), (1, 2), (1, 3) };
+                    hanojskiStolp.Povezave = new List<(byte, byte)>() { (0, 2), (2, 0), (0, 3), (3, 0), (1, 2), (2, 1), (1, 3), (3, 1) };
                     break;
 
                 //K4-e
                 case "5":
-                    hanojskiStolp.Povezave = new List<(byte, byte)>() { (0, 1), (0, 2), (0, 3), (1, 2), (1, 3) };
+                    hanojskiStolp.Povezave = new List<(byte, byte)>() { (0, 1), (1, 0), (0, 2), (2, 0), (0, 3), (3, 0), (1, 2), (2, 1), (1, 3), (3, 1) };
                     break;
 
                 //P1+3
                 case "6":
-                    hanojskiStolp.Povezave = new List<(byte, byte)>() { (1, 2), (2, 3), (3, 0) };
+                    hanojskiStolp.Povezave = new List<(byte, byte)>() { (1, 2), (2, 1), (2, 3), (3, 2), (3, 0), (0, 3) };
                     break;
             }
 
@@ -219,7 +183,22 @@ namespace HanojskiStolpi
 
             return stevilo;
         }
+
+        //najdi najvišje obroče v stolpu
+        static byte[] ZgornjiObrocki(List<byte> seznam, int stolpi)
+        {
+            byte[] zgornjiObrocki = new byte[stolpi];
+            for (int i = 0; i < stolpi; i++) { zgornjiObrocki[i] = 100; }
+            for (int i = 0; i < seznam.Count; i++)
+            {
+                if (i < zgornjiObrocki[seznam[i]])
+                {
+                    zgornjiObrocki[seznam[i]] = Convert.ToByte(i);
+                }
+            }
+            return zgornjiObrocki;
+        }
     }
     
-    //najdi najvišje obroče v stolpu
+    
 }
