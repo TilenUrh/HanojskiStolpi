@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace HanojskiStolpi
@@ -58,13 +59,14 @@ namespace HanojskiStolpi
                 string konec = Console.ReadLine();
                 byte konecBy = Convert.ToByte(konec);
 
-                HanojskiStolpi izbira = HanojskiStolpi.ZacetnoStanje (problem, obrockiBy, zacetekBy);
+                HanojskiStolpi izbira = HanojskiStolpiFactory.ZacetnoStanje (problemBy, obrockiBy, zacetekBy, konecBy);
+                List<byte> zacetneLokacije = HanojskiStolpi.ZacetneLokacije(izbira.Zacetek, izbira.Obrocki);
 
                 Console.WriteLine("Preračunavam...");
                 //shrani začetni čas
                 DateTime zacetniCas = DateTime.Now;
 
-                izbira.NajkrajsaPot(konecBy);
+                izbira.NajkrajsaPot(zacetneLokacije);
 
                 Console.WriteLine("Končano!");
                 //shrani končni čas in izpis časa izvajanja
