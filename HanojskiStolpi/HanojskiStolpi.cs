@@ -28,7 +28,6 @@ namespace HanojskiStolpi
             int stolpi = 4;
             HashSet<int> stariPremiki = new HashSet<int>() { };
             List<int> trenutnePozicije = new List<int>(){PozicijeVStevilo(lokacije) };
-            //List<byte> seznam = new List<byte>();
             HashSet<int> mozniPremiki = new HashSet<int>();
             int najvecjiObroc = lokacije.Count - 1;
             
@@ -71,7 +70,7 @@ namespace HanojskiStolpi
 
                                     //preveri če je bil premik že narejen prej in če je obroč že na končni poziciji
                                     int vsebuje = PozicijeVStevilo(seznamZacasno);
-                                    if (!stariPremiki.Contains(vsebuje) /*&& !(i == this.Konec && zgornjiObrocki[i] >= najvecjiObroc)*/)
+                                    if (!stariPremiki.Contains(vsebuje)) 
                                     {
                                         lock (mozniPremiki)
                                         {
