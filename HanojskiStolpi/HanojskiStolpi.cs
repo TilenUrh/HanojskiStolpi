@@ -28,10 +28,10 @@ namespace HanojskiStolpi
             int stolpi = 4;
             HashSet<int> stariPremiki = new HashSet<int>() { };
             List<int> trenutnePozicije = new List<int>(){PozicijeVStevilo(lokacije) };
-            List<byte> seznam = new List<byte>();
+            //List<byte> seznam = new List<byte>();
             HashSet<int> mozniPremiki = new HashSet<int>();
             int najvecjiObroc = lokacije.Count - 1;
-            List<byte> seznamZacasno = new List<byte>();
+            
             Boolean zmanjsajObroc = false;
             int zaporedjeVNovKrog = 0;
 
@@ -43,12 +43,13 @@ namespace HanojskiStolpi
             {
                 //preveri vse trenutne možnosti stolpcev
                 ParallelOptions options = new ParallelOptions();
-                options.MaxDegreeOfParallelism = 1;
+                options.MaxDegreeOfParallelism = 4;
                 Parallel.ForEach(trenutnePozicije, options,  (pozicija, stanje) =>
                 {
-                    seznam = new List<byte>();
+                    List<byte> seznamZacasno = new List<byte>();
+                    //seznam = new List<byte>();
                     byte[] zgornjiObrocki = new byte[stolpi];
-                    seznam = SteviloVPozicije(pozicija, this.Obrocki); //seznam pozicij obrockov
+                    List<byte> seznam = SteviloVPozicije(pozicija, this.Obrocki); //seznam pozicij obrockov
 
                     zgornjiObrocki = ZgornjiObrocki(seznam, stolpi);
 
